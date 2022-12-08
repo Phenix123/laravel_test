@@ -125,4 +125,12 @@
         @endforeach
 
     </div>
+    <script>
+
+        //Код jQuery, установливающий маску для ввода телефона элементу input
+        //1. После загрузки страницы,  когда все элементы будут доступны выполнить...
+        $(document).ready(function () {
+            $("#phone_number").inputmask("9(999)999-99-99");
+        });
+    </script>
 @endsection

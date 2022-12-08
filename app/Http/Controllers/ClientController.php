@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Car;
 use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,19 +15,8 @@ class ClientController extends Controller
      */
     public function index()
     {
-        $clients = DB::table('clients')
-            ->select([
-                'clients.id',
-                'clients.full_name',
-                'cars.brand',
-                'cars.model',
-                'cars.id as cars_id',
-                'cars.state_number',
-            ])
-            ->join('cars', 'clients.id', '=', 'cars.client_id')
-            ->paginate(7);
-        #$clients=Client::first();
-        #return $clients->toArray();
+        $clients = Client::getMainInfo();
+
         return view('index', ['clients' => $clients]);
     }
 
@@ -50,52 +40,23 @@ class ClientController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'full_name' => 'required|min:3',
+            'full_name' => 'required|min:3|max:100',
             'gender' => 'boolean',
-            'phone_number' => "required|unique:clients,phone_number",
-            'address' => 'nullable|string',
-            'model' => 'required|string',
-            'brand' => 'required|string',
-            'colour' => 'required|string',
-            'state_number'=> 'required|unique:cars,state_number',
+            'phone_number' => "required|unique:clients,phone_number|max:15",
+            'address' => 'nullable|string|max:100',
+            'model' => 'required|string|max:100',
+            'brand' => 'required|string|max:100',
+            'colour' => 'required|string|max:20',
+            'state_number'=> 'required|unique:cars,state_number|max:20',
             'on_parking'=> 'boolean'
         ]);
 
-        ##dd($request);
-        $full_name = $request->input('full_name');
-        $gender = $request->input('gender');
-        $phone_num = $request->input('phone_number');
-        $address = $request->input('address');
 
+        $client_id =  Client::createClient($request);
 
-        DB::table('clients')
-            ->insert([
-                'full_name' => $full_name,
-                'gender' => $gender,
-                'phone_number' => $phone_num,
-                'address' => $address,
-            ]);
+        $request->merge(['client_id' => $client_id]);
 
-        $client_id = DB::table('clients')
-            ->select('id')
-            ->where('phone_number', '=', $phone_num)
-            ->get()[0]->id;
-
-        $brand = $request->input('brand');
-        $model = $request->input('model');
-        $colour = $request->input('colour');
-        $state_number = $request->input('state_number');
-        $on_parking = $request->input('on_parking');
-        //dd($brand, $model, $colour, $state_number, $on_parking);
-        DB::table('cars')
-            ->insert([
-                'brand' => $brand,
-                'model' => $model,
-                'colour' => $colour,
-                'state_number' => $state_number,
-                'on_parking' => $on_parking,
-                'client_id' => $client_id
-            ]);
+        Car::createCar($request);
 
         return redirect()->route('clients.show', str($client_id));
     }
@@ -108,28 +69,9 @@ class ClientController extends Controller
     {
         //dd($client);
 
-        $cur_client = DB::table('clients')
-            ->select([
-                'clients.id',
-                'clients.full_name',
-                'clients.gender',
-                'clients.phone_number',
-                'clients.address',
-            ])
-            ->where('id', '=', $id)
-            ->first();
+        $cur_client = Client::getClient($id);
 
-        $cur_client_cars = DB::table('cars')
-            ->select([
-                'cars.id',
-                'cars.brand',
-                'cars.model',
-                'cars.colour',
-                'cars.state_number',
-                'cars.on_parking',
-            ])
-            ->where('client_id', '=', $id)
-            ->get();
+        $cur_client_cars = Car::getClientCars($id);
 
         return view('edit_client', [
             'cur_client' => $cur_client,
@@ -159,22 +101,14 @@ class ClientController extends Controller
     {
         //dd($request);
         $request->validate([
-            'full_name' => 'required|min:3',
+            'full_name' => 'required|min:3|max:100',
             'gender' => 'boolean',
-            'phone_number' => "required|unique:clients,phone_number,$id",
-            'address' => 'nullable|string',
+            'phone_number' => "required|unique:clients,phone_number,$id|max:15",
+            'address' => 'nullable|string|max:100',
         ]);
 
-        $cur_client = DB::table('clients')
-            ->where('id', '=', $id)
-            ->update(
-                [
-                'full_name' => $request->full_name,
-                'gender' => $request->gender,
-                'phone_number' => $request->phone_number,
-                'address' => $request->address,
-                ]
-    );
+        Client::updateClient($request, $id);
+
         return redirect()->route('clients.show', str($id));
     }
 
@@ -187,9 +121,7 @@ class ClientController extends Controller
     public function delete($id)
     {
         //
-        DB::table('clients')
-            ->where('id', '=', $id)
-            ->delete();
+        Client::deleteClient($id);
 
         return redirect()->route('clients.index');
     }

@@ -7,8 +7,14 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css">
     <title>@yield('title')</title>
+
 </head>
 <body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<!-- Подключение jQuery плагина Masked Input -->
+
+<script src="https://xn----7sbbaqhlkm9ah9aiq.net/upload/jquery.inputmask.js"></script>
+
 <nav class="navbar navbar-expand navbar-dark bg-dark mb-3">
     <div class="container-fluid">
         <a class="navbar-brand" href="{{route('clients.index')}}">Parking</a>

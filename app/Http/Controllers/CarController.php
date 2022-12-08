@@ -43,16 +43,8 @@ class CarController extends Controller
             'state_number' => "required|unique:cars,state_number",
             'on_parking' => 'boolean',
         ]);
-        //
-        DB::table('cars')
-            ->insert([
-                'brand' => $request->brand,
-                'model' => $request->model,
-                'colour' => $request->colour,
-                'state_number' => $request->state_number,
-                'on_parking' => $request->on_parking,
-                'client_id'=> $request->client_id,
-            ]);
+
+        Car::createCar($request);
 
         return redirect()->route('clients.show', $request->client_id);
     }
@@ -90,28 +82,17 @@ class CarController extends Controller
     {
         //
         $request->validate([
-            'brand' => 'required|string',
-            'model' => 'required|string',
-            'colour' => 'required|string',
-            'state_number' => "required|unique:cars,state_number,$id",
+            'brand' => 'required|string|max:100',
+            'model' => 'required|string|max:100',
+            'colour' => 'required|string|max:20',
+            'state_number' => "required|unique:cars,state_number,$id|max:20",
             'on_parking' => 'boolean',
         ]);
-        //sdd($request);
-        $cur_car = DB::table('cars')
-            ->where('id', '=', $id)
-            ->update(
-                [
-                    'brand' => $request->brand,
-                    'model' => $request->model,
-                    'colour' => $request->colour,
-                    'state_number' => $request->state_number,
-                    'on_parking' => $request->on_parking,
-                ]
-            );
-        $client_id = DB::table('cars')
-            ->select('client_id')
-            ->where('id', '=', $id)->first();
-        //dd($client_id->client_id);
+
+        Car::updateCar($request, $id);
+
+        $client_id = Car::getClientIdOfCar($id);
+
         return redirect()->route('clients.show', $client_id->client_id);
     }
 
@@ -121,20 +102,13 @@ class CarController extends Controller
      */
     public function delete($id)
     {
-        $client_id = DB::table('cars')
-            ->select('client_id')
-            ->where('id', '=' , $id)
-            ->first();
-        $count = DB::table('cars')
-            ->where('client_id', '=', str($client_id->client_id))
-            ->count('client_id');
+        $client_id = Car::getClientIdOfCar($id);
+
+        $count = Car::countOfClientCars($client_id);
 
         if ($count > 1) // If client has two cars at least
         {
-            DB::table('cars')
-                ->where('id', '=', $id)
-                ->delete();
-
+            Car::deleteCar($id);
             return back()->withInput();
         }
         else {
