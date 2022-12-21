@@ -5,10 +5,43 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class Car extends Model
 {
+    /**
+     * @return Collection
+     */
+    static public function getAll()
+    {
+        return DB::table('cars')
+            ->select([
+                'id',
+                'model',
+                'brand',
+                'colour',
+                'state_number'
+            ])->get();
+    }
+
+    /**
+     * @param $id
+     * @return Collection
+     */
+    public static function getCarById($id)
+    {
+        return DB::table('cars')
+            ->select([
+                'id',
+                'model',
+                'brand',
+                'colour',
+                'state_number'
+            ])
+            ->where('id', $id)
+            ->get();
+    }
 
     static public function createCar(Request $request)
     {
