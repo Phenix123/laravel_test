@@ -54,6 +54,10 @@ class Car extends Model
                 'on_parking' => $request->on_parking,
                 'client_id'=> $request->client_id,
             ]);
+        return DB::table('cars')
+            ->select('id')
+            ->where('state_number', '=', $request->state_number)
+            ->get()[0]->id;
     }
 
     static public function updateCar(Request $request, $id)
@@ -106,6 +110,5 @@ class Car extends Model
             ->where('client_id', '=', str($client_id->client_id))
             ->count('client_id');
     }
-
     use HasFactory;
 }
